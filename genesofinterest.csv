@@ -344,3 +344,6 @@
 "Ucp3","uncoupling protein 3 (mitochondrial, proton carrier)",""
 "Unc119b","unc-119 lipid binding chaperone B","Julien Sebag"
 "Vip","vasoactive intestinal polypeptide",""
+"Serpina3c", "adipokine serine protease inhibitor A3C", "maternal serpina3k protects offspring from hfd https://www.nature.com/articles/s42255-024-01213-6"
+"Kmf4", "Kruppel-like factor 4", "altered by Serpina3c to protect from HFD. see https://www.nature.com/articles/s42255-024-01213-6"
+
