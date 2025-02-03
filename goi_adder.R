@@ -10,4 +10,4 @@ if (!newline['gene'] %in% df$gene){
 
 df = df[order(df$gene), ]
 
-write.csv(x = df, file = 'genesofinterest.csv')
+write.csv(x = df, file = 'genesofinterest.csv', row.names = F)
