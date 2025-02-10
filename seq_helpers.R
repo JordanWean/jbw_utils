@@ -110,6 +110,11 @@ deggerator = function(srt,
     
     temp_deg = cbind(gene = rownames(temp_deg), temp_deg)
     temp_deg = subset(temp_deg, p_val_adj < pvalcutoff)
+    
+    temp_deg$FC = ifelse(sign(temp_deg$avg_log2FC) == '-1', 
+                         yes = (1/(2 ^ temp_deg$avg_log2FC)) * -1
+                         no = 2 ^ temp_deg$avg_log2FC)
+    
     temp_deg$FC = 2 ^ temp_deg$avg_log2FC
     temp_deg = list(temp_deg)
     deg = c(deg, temp_deg)
