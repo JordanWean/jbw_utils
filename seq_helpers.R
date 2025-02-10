@@ -181,7 +181,7 @@ deg_processor = function(deg,
         return(NULL)
       })
       
-      if (is.null(annotations) | nrow(annotations) == 0) {
+      if (is.null(annotations) || nrow(annotations) == 0) {
         next
       }
       

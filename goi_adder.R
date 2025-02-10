@@ -2,8 +2,8 @@ library(org.Mm.eg.db)
 
 df = read.csv('genesofinterest.csv')
 
-newline = c(gene = '', 
-            genename = '', 
+newline = c(gene = '',
+            genename = '',
             notes = '')
 
 if (!newline['gene'] %in% df$gene) {
@@ -16,11 +16,11 @@ df = df[order(df$gene), ]
 df = df[!duplicated(df$gene), ]
 
 annotations = select(
-        org.Mm.eg.db,
-        keys = df$gene,
-        columns = "GENENAME",
-        keytype = "SYMBOL" 
-      )
+  org.Mm.eg.db,
+  keys = df$gene,
+  columns = "GENENAME",
+  keytype = "SYMBOL"
+)
 
 df$genename = annotations$GENENAME
 
