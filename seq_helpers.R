@@ -317,6 +317,9 @@ deg_processor = function(deg,
     colnames(stats) = colnames
     deg = c(GroupStats = list(stats), deg)
   }
+  
+  # Remove any NA list items
+  deg = Filter(function(x) !is.na(x), deg)
 }
 
 #### Not my function, just added to a  useful one.
