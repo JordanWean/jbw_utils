@@ -2,6 +2,7 @@
 #' 
 #' @param srt A Seurat object after RunPCA has been performed.
 #' @returns Numeric value. Number of useful PCA dimensions.
+#' @export
 choose_pca_dim = function(srt) {
   ### Adapted from https://hbctraining.github.io/scRNA-seq/lessons/elbow_plot_metric.html
   pct = srt[['pca']]@stdev / sum(srt[['pca']]@stdev) * 100
@@ -15,6 +16,7 @@ choose_pca_dim = function(srt) {
 #' Check size of objects and auto format units
 #' 
 #' @param x An object in the R environment.
+#' @export
 sz = function(x){format(object.size(x), units = 'auto')}
 
 #' Clear the R environment
@@ -31,9 +33,11 @@ clear = function(){rm(list = ls())}
 #' @param bulk Boolean. Determines if pseudobulking will also be performed. Defaults to F.
 #' @param sample_column Name of metadata column containing sample assignments for each cell. Only required for pseudobulking.
 #' @param test.use Passed to FindMarkers. Defaults to Wilcoxon for SC and DESeq2 for bulk.
+#' @param ... Additional arguments to pass to Seurat's FindMarkers
 #' @returns Dataframe of differentially expressed genes.
 #' @import Seurat
 #' @import magrittr
+#' @export
 deggerator = function(srt,
                       group_column,
                       group_order,
@@ -42,7 +46,8 @@ deggerator = function(srt,
                       assay = 'RNA',
                       bulk = F,
                       sample_column = NULL,
-                      test.use = NULL) {
+                      test.use = NULL,
+                      ...) {
   
   
   if (is.null(test.use)) {
@@ -91,19 +96,14 @@ deggerator = function(srt,
       ident.1 = g.two,
       ident.2 = g.one,
       assay = assay,
-      test.use = test.use
+      test.use = test.use,
+      ...
     )
-    
-    # if (bulk == FALSE){
-    #   temp_deg = FindMarkers(object = srt,
-    #                          ident.1 = g.two,
-    #                          ident.2 = g.one,
-    #                          test.use = test.use,
-    #                          assay = assay) }
+
     # Combine and filter values
     
     # Error catching
-    if (!'p_val_adj' %in% temp_deg){
+    if (!'p_val_adj' %in% colnames(temp_deg)){
       cell_type = cell_type[!cell_type == type]
       next
       }
@@ -112,10 +112,10 @@ deggerator = function(srt,
     temp_deg = subset(temp_deg, p_val_adj < pvalcutoff)
     
     temp_deg$FC = ifelse(sign(temp_deg$avg_log2FC) == '-1', 
-                         yes = (1/(2 ^ temp_deg$avg_log2FC)) * -1
+                         yes = (1/(2 ^ temp_deg$avg_log2FC)) * -1,
                          no = 2 ^ temp_deg$avg_log2FC)
     
-    temp_deg$FC = 2 ^ temp_deg$avg_log2FC
+    # temp_deg$FC = 2 ^ temp_deg$avg_log2FC
     temp_deg = list(temp_deg)
     deg = c(deg, temp_deg)
     
@@ -131,24 +131,61 @@ deggerator = function(srt,
 #' @param sort Boolean. Sort the names of the deg list items alphabetically?
 #' @param stats Boolean. Create a DEG stats item at beginning of list?
 #' @param rm_mito Boolean. Remove mitochondrial genes?
-#' @param sort Boolean. Sort genes by AvgLog2FC?
+#' @param sort_by_FC Boolean. Sort genes by AvgLog2FC?
+#' @param gene_name Boolean. Search database to get gene gene name?
+#' @param db_name String. Name of species gene annotation database from BioConductor. Defaults to "org.Mm.eg.db".
+#' @param ... Arguments to be passed to the select function for the gene annotation database.
 #' @returns A list of diffentially expressed gene dataframes that have been processed.
+#' @import AnnotationDbi
+#' @export
 deg_processor = function(deg,
-                           genes = NULL,
-                           pull_genes = T,
-                           gene_pattern = NULL,
-                           sort = T,
-                           stats = T,
-                           rm_mito = F,
-                           order = T) {
+                         genes = NULL,
+                         pull_genes = T,
+                         gene_pattern = NULL,
+                         sort = T,
+                         stats = T,
+                         rm_mito = F,
+                         order = T,
+                         gene_name = T,
+                         db_name = 'org.Mm.eg.db') {
   
   if (order) {deg = deg[order(names(deg))]}
   
+  if (gene_name) {
+    data_names = names(deg)
+    # Check if BiocManager is installed, install if not
+    if (!requireNamespace("BiocManager", quietly = TRUE)) {
+      install.packages("BiocManager")
+    }
+    
+    # Check if the specified database is installed
+    if (!requireNamespace(db_name, quietly = TRUE)) {
+      # Install the database if not installed
+      BiocManager::install(db_name)
+    }
+    
+    # Load the database
+    library(db_name, character.only = TRUE)
+
+    for (name in names(deg)) {
+      cluster = deg[[name]]
+      
+      annotations = select(
+        org.Mm.eg.db,
+        keys = cluster$gene,
+        columns = c("GENENAME"),
+        keytype = "SYMBOL"
+      )
+      deg[[name]] = cbind(deg[[name]], annotations$GENENAME)
+    }
+  }
+
   if (is.null(genes) & pull_genes){
     goi = read.csv(url('https://raw.githubusercontent.com/JordanWean/jbw_utils/refs/heads/main/genesofinterest.csv'))
     genes = goi$gene
   }
   
+
   if (!is.null(genes) | !is.null(gene_pattern)) {
     for (name in names(deg)) {
       cluster = deg[[name]]
@@ -214,7 +251,7 @@ deg_processor = function(deg,
   }
   
   
-  if (sort) {
+  if (sort_by_FC) {
     deg = lapply(
       deg,
       FUN = function(x) {
