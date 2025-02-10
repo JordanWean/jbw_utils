@@ -101,6 +101,13 @@ deggerator = function(srt,
     #                          test.use = test.use,
     #                          assay = assay) }
     # Combine and filter values
+    
+    # Error catching
+    if (!'p_val_adj' %in% temp_deg){
+      cell_type = cell_type[!cell_type == type]
+      next
+      }
+    
     temp_deg = cbind(gene = rownames(temp_deg), temp_deg)
     temp_deg = subset(temp_deg, p_val_adj < pvalcutoff)
     temp_deg$FC = 2 ^ temp_deg$avg_log2FC
