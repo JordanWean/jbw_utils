@@ -1,12 +1,28 @@
+library(org.Mm.eg.db)
+
 df = read.csv('genesofinterest.csv')
 
-newline = c(gene = 'Pmch', name = 'Pro-melanin concentrating hormone', notes = 'MCH neurons in the hypothalamus project numerous places and have many effects on feeding, sleep, arousal')
+newline = c(gene = '', 
+            genename = '', 
+            notes = '')
 
 if (!newline['gene'] %in% df$gene) {
   df = rbind(df, newline)
 }
 
 df = df[order(df$gene), ]
+
+# fix any duplications
+df = df[!duplicated(df$gene), ]
+
+annotations = select(
+        org.Mm.eg.db,
+        keys = df$gene,
+        columns = "GENENAME",
+        keytype = "SYMBOL" 
+      )
+
+df$genename = annotations$GENENAME
 
 write.csv(x = df,
           file = 'genesofinterest.csv',
