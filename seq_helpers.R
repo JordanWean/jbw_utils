@@ -190,17 +190,17 @@ deg_processor = function(deg,
     }
     
   }
-
+  
   if (is.null(genes) & pull_genes){
     goi = read.csv(url('https://raw.githubusercontent.com/JordanWean/jbw_utils/refs/heads/main/genesofinterest.csv'))
     genes = goi$gene
   }
   
-
+  
   if (!is.null(genes) | !is.null(gene_pattern)) {
     for (name in names(deg)) {
       cluster = deg[[name]]
-      if (length(cluster) == 1) {
+      if (length(cluster) == 1 || nrow(cluster) == 0) {
         next
       }
       
@@ -236,14 +236,6 @@ deg_processor = function(deg,
       }
     }
     if (exists('genes_of_interest')) {
-      colnames(genes_of_interest) = c('gene',
-                                      'p_val',
-                                      'avg_log2FC',
-                                      'pct.1',
-                                      'pct.2',
-                                      'p_val_adj',
-                                      'FC',
-                                      'Cluster')
       genes_of_interest = genes_of_interest[order(genes_of_interest$pct.1, decreasing = T), ]
       genes_of_interest = genes_of_interest[order(abs(genes_of_interest$avg_log2FC), decreasing = T), ]
       genes_of_interest = list(genes_of_interest)
