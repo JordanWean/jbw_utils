@@ -166,18 +166,29 @@ deg_processor = function(deg,
     
     # Load the database
     library(db_name, character.only = TRUE)
-
+    
     for (name in names(deg)) {
+      annotations = NULL # try to catch some errors
       cluster = deg[[name]]
+      annotations = tryCatch({
+        suppressMessages(select(
+          org.Mm.eg.db,
+          keys = cluster$gene,
+          columns = "GENENAME",
+          keytype = "SYMBOL" 
+        ))
+      }, error = function(e) {
+        return(NULL)
+      })
       
-      annotations = select(
-        org.Mm.eg.db,
-        keys = cluster$gene,
-        columns = c("GENENAME"),
-        keytype = "SYMBOL"
-      )
+      if (is.null(annotations) | nrow(annotations) == 0) {
+        next
+      }
+      
       deg[[name]] = cbind(deg[[name]], annotations$GENENAME)
+      colnames(deg[[name]])[colnames(deg[[name]]) == 'annotations$GENENAME'] = 'gene_name'
     }
+    
   }
 
   if (is.null(genes) & pull_genes){
