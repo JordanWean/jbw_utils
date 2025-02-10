@@ -149,6 +149,14 @@ deg_processor = function(deg,
                          gene_name = T,
                          db_name = 'org.Mm.eg.db') {
   
+  
+  # Initial cleanup
+  for (name in names(deg)) {
+    if (is.null(deg[[name]]) || nrow(deg[[name]]) == 0) {
+      deg[[name]] = NULL
+    }
+  }
+  
   if (order) {deg = deg[order(names(deg))]}
   
   if (gene_name) {
@@ -318,8 +326,14 @@ deg_processor = function(deg,
     deg = c(GroupStats = list(stats), deg)
   }
   
-  # Remove any NA list items
-  deg = Filter(function(x) !is.na(x), deg)
+  # Ending cleanup
+  for (name in names(deg)) {
+    if (is.null(deg[[name]]) || nrow(deg[[name]]) == 0) {
+      deg[[name]] = NULL
+    }
+  }
+  
+  return(deg)
 }
 
 #### Not my function, just added to a  useful one.
