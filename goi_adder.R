@@ -1,9 +1,9 @@
 library(org.Mm.eg.db)
+library(AnnotationDbi)
 
 df = read.csv('genesofinterest.csv')
 
 newline = c(gene = '',
-            genename = '',
             notes = '')
 
 if (!newline['gene'] %in% df$gene) {
