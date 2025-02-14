@@ -137,6 +137,7 @@ deggerator = function(srt,
 #' @param ... Arguments to be passed to the select function for the gene annotation database.
 #' @returns A list of diffentially expressed gene dataframes that have been processed.
 #' @import AnnotationDbi
+#' @import dplyr
 #' @export
 deg_processor = function(deg,
                          genes = NULL,
@@ -149,7 +150,7 @@ deg_processor = function(deg,
                          gene_name = T,
                          db_name = 'org.Mm.eg.db') {
   
-  
+  library(dplyr)
   # Initial cleanup
   for (name in names(deg)) {
     if (is.null(deg[[name]]) || nrow(deg[[name]]) == 0) {
@@ -240,7 +241,8 @@ deg_processor = function(deg,
       if (!exists("genes_of_interest")) {
         genes_of_interest = data.frame(z)
       } else {
-        genes_of_interest = rbind(genes_of_interest, z)
+        # genes_of_interest = rbind(genes_of_interest, z)
+        genes_of_interest = bind_rows(genes_of_interest, z)
       }
     }
     if (exists('genes_of_interest')) {
