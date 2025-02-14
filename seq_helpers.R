@@ -134,6 +134,7 @@ deggerator = function(srt,
 #' @param sort_by_FC Boolean. Sort genes by AvgLog2FC?
 #' @param gene_name Boolean. Search database to get gene gene name?
 #' @param db_name String. Name of species gene annotation database from BioConductor. Defaults to "org.Mm.eg.db".
+#' @param order Sort genes by AvgLog2FC?
 #' @param ... Arguments to be passed to the select function for the gene annotation database.
 #' @returns A list of diffentially expressed gene dataframes that have been processed.
 #' @import AnnotationDbi
@@ -246,8 +247,11 @@ deg_processor = function(deg,
       }
     }
     if (exists('genes_of_interest')) {
-      genes_of_interest = genes_of_interest[order(genes_of_interest$pct.1, decreasing = T), ]
-      genes_of_interest = genes_of_interest[order(abs(genes_of_interest$avg_log2FC), decreasing = T), ]
+      if (sort_by_FC) {
+        genes_of_interest = genes_of_interest[order(abs(genes_of_interest$avg_log2FC), decreasing = T), ]
+        genes_of_interest = genes_of_interest[order(genes_of_interest$pct.1, decreasing = T), ]
+      }
+      
       genes_of_interest = list(genes_of_interest)
       names(genes_of_interest) = 'Genes of Interest'
       deg = append(deg, genes_of_interest, after = 0)
