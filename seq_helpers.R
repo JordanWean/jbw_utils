@@ -13,15 +13,6 @@ choose_pca_dim = function(srt) {
   return(pcs)
 }
 
-#' Check size of objects and auto format units
-#' 
-#' @param x An object in the R environment.
-#' @export
-sz = function(x){format(object.size(x), units = 'auto')}
-
-#' Clear the R environment
-clear = function(){rm(list = ls())}
-
 #' Run differentially expressed genes for all clusters between two conditions.
 #' 
 #' @param srt A Seurat object with clusters and multiple conditions.
@@ -30,7 +21,7 @@ clear = function(){rm(list = ls())}
 #' @param ident_column String. Name of metadata column where your cell types or clustering assignments are found.
 #' @param pvalcutoff Numeric. What p-value you consider to be significant. This defaults to 0.05.
 #' @param assay String. What assay should be used? Defaults to RNA.
-#' @param bulk Boolean. Determines if pseudobulking will also be performed. Defaults to F.
+#' @param bulk Boolean. Determines if pseudobulking should be applied before analysis. Defaults to F.
 #' @param sample_column Name of metadata column containing sample assignments for each cell. Only required for pseudobulking.
 #' @param test.use Passed to FindMarkers. Defaults to Wilcoxon for SC and DESeq2 for bulk.
 #' @param ... Additional arguments to pass to Seurat's FindMarkers
@@ -149,7 +140,8 @@ deg_processor = function(deg,
                          rm_mito = F,
                          order = T,
                          gene_name = T,
-                         db_name = 'org.Mm.eg.db') {
+                         db_name = 'org.Mm.eg.db',
+                         ...) {
   
   library(dplyr)
   # Initial cleanup
@@ -310,8 +302,8 @@ deg_processor = function(deg,
         top = mean(y[1:5])
         bottom = mean(tail(y, 5))
       }
-      else {
-        if (!exists('nPos')){nPos = ''}
+      else { # There surely is a much better way to do this cleanup
+        if (!exists('nPos')){nPos = ''}  
         if (!exists('maxFC')){maxFC = ''}
         if (!exists('nNeg')){nNeg = ''}
         if (!exists('minFC')){minFC = ''}
