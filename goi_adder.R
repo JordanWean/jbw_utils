@@ -3,8 +3,10 @@ library(AnnotationDbi)
 
 df = read.csv('genesofinterest.csv')
 
-newline = c(gene = '',
-            notes = '')
+newline = c(gene = 'Pnpla3',
+            notes = 'Liver and fat cell fat metabolism. Heavily implicated in NAFLD')
+
+newline = c(newline[1], "", newline[2])
 
 if (!newline['gene'] %in% df$gene) {
   df = rbind(df, newline)
