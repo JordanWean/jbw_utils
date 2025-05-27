@@ -66,7 +66,7 @@ deggerator = function(srt,
   # Run DEGs for each unique pair of cluster and condition.
   deg = list()
   for (type in cell_type) {
-    print(paste0("Analyzing ", type))
+    message(paste0("Analyzing ", type))
     g.one = paste0(type, group_order[1])
     g.two = paste0(type, group_order[2])
     
