@@ -866,3 +866,30 @@ log2fc_xl_highlighter <- function(input_path, xlsx_files = NULL) {
     }
   }
 }
+
+
+gzip_all_files <- function(directory) {
+  files <- list.files(directory, recursive = TRUE, full.names = TRUE)
+  for (f in files) {
+    if (!grepl("\\.gz$", f)) {
+      system(paste("gzip", shQuote(f)))
+    }
+  }
+}
+
+
+ungzip_all_files <- function(directory) {
+  pkg = 'R.utils'
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg)
+    library(pkg, character.only = TRUE)
+  }
+  gz_files <- list.files(directory, pattern = "\\.gz$", recursive = TRUE, full.names = TRUE)
+  for (fz in gz_files) {
+    message("Unzipping: ", fz)
+    # Unzip in-place, remove gz file after
+    gunzip(fz, overwrite = TRUE, remove = TRUE)
+  }
+  invisible(NULL)
+}
+
