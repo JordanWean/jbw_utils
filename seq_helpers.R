@@ -814,7 +814,6 @@ deg_processor <- function(deg,
 }
 
 
-
 log2fc_xl_highlighter <- function(input_path, xlsx_files = NULL) {
   library(openxlsx)
 
@@ -879,7 +878,7 @@ gzip_all_files <- function(directory) {
 
 
 ungzip_all_files <- function(directory) {
-  pkg = 'R.utils'
+  pkg <- "R.utils"
   if (!require(pkg, character.only = TRUE)) {
     install.packages(pkg)
     library(pkg, character.only = TRUE)
@@ -893,3 +892,42 @@ ungzip_all_files <- function(directory) {
   invisible(NULL)
 }
 
+
+
+check_3d_umap <- function(srt,
+                          labels,
+                          embeddings = NULL,
+                          dims = NULL,
+                          pt.size = 2) {
+  if (is.null(embeddings & !is.null(dims))) {
+    srt <- Seurat::RunUMAP(srt, n.components = 3, reduction.name = "umap_3d", dims = dims)
+    df_3d <- srt@reductions$umap_3d@cell.embeddings %>% as.data.frame()
+  } else if (is.null(embeddings)) {
+    df_3d <- as.data.frame(embeddings)
+  }
+  
+  colnames(df_3d) <- c("x", "y", "z")
+  df_3d$label <- labels
+  
+  plotly::plot_ly(
+    data = df_3d,
+    x = ~x,
+    y = ~y,
+    z = ~z,
+    color = ~label,
+    colors = c("red", "blue", "green"),
+    type = "scatter3d",
+    mode = "markers",
+    marker = list(size = pt.size),
+    text = ~ paste("Label:", label),
+    hoverinfo = "text"
+  ) %>%
+    layout(
+      scene = list(
+        xaxis = list(title = "X"),
+        yaxis = list(title = "Y"),
+        zaxis = list(title = "Z")
+      ),
+      legend = list(title = list(text = "Cluster"))
+    )
+}
