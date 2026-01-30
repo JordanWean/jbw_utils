@@ -3,13 +3,15 @@
 #' @param srt A Seurat object after RunPCA has been performed.
 #' @returns Numeric value. Number of useful PCA dimensions.
 #' @export
-choose_pca_dim <- function(srt) {
+choose_pca_dim <- function(srt, buffer = 0) {
   ### Adapted from https://hbctraining.github.io/scRNA-seq/lessons/elbow_plot_metric.html
   pct <- srt[["pca"]]@stdev / sum(srt[["pca"]]@stdev) * 100
   cumu <- cumsum(pct)
   co1 <- which(cumu > 90 & pct < 5)[1]
   co2 <- sort(which((pct[1:length(pct) - 1] - pct[2:length(pct)]) > 0.1), decreasing = T)[1] + 1
   pcs <- min(co1, co2)
+  pcs <- pcs + buffer
+  pcs <- 1:pcs
   return(pcs)
 }
 
@@ -893,7 +895,6 @@ ungzip_all_files <- function(directory) {
 }
 
 
-
 check_3d_umap <- function(srt,
                           labels,
                           embeddings = NULL,
@@ -905,10 +906,10 @@ check_3d_umap <- function(srt,
   } else if (is.null(embeddings)) {
     df_3d <- as.data.frame(embeddings)
   }
-  
+
   colnames(df_3d) <- c("x", "y", "z")
   df_3d$label <- labels
-  
+
   plotly::plot_ly(
     data = df_3d,
     x = ~x,
