@@ -932,3 +932,10 @@ check_3d_umap <- function(srt,
       legend = list(title = list(text = "Cluster"))
     )
 }
+
+
+remove_variable_genes <- function(object = srt, pattern = "^mt-") {
+  mt <- grepv(pattern, rownames(object))
+  VariableFeatures(object) <- setdiff(VariableFeatures(object), mt)
+  return(object)
+}
