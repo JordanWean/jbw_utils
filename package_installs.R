@@ -13,7 +13,7 @@ packages <- c(
   "cluster",
   "ComplexHeatmap",
   "corrplot",
-  "data_table",
+  "data.table",
   "doMC",
   "effsize",
   "emmeans",
@@ -51,8 +51,8 @@ packages <- c(
   "nortest",
   "nparLD",
   "openxlsx",
-  "org_Hs_eg_db",
-  "org_Mm_eg_db",
+  "org.Hs.eg_db",
+  "org.Mm.eg_db",
   "patchwork",
   "paleteer",
   "plotly",
@@ -74,7 +74,7 @@ packages <- c(
   "survminer",
   "svglite",
   "tidyverse",
-  "WebGestaltR",
+  "WebGestaltR"
 )
 
 
@@ -94,3 +94,4 @@ packages <- c(packages, githubs)
 
 # Install all packages
 pak::pkg_install(packages)
+pak::pkg_install("data_table")
