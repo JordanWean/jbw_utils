@@ -939,3 +939,87 @@ remove_variable_genes <- function(object = srt, pattern = "^mt-") {
   VariableFeatures(object) <- setdiff(VariableFeatures(object), mt)
   return(object)
 }
+
+
+
+apply_nudges <- function(label_data, nudges, group_col = "group.by") {
+  label_data$nudge_x <- 0
+  label_data$nudge_y <- 0
+  
+  for (cell_type in names(nudges)) {
+    idx <- label_data[[group_col]] == cell_type
+    if (any(idx)) {
+      label_data$nudge_x[idx] <- nudges[[cell_type]][1]
+      label_data$nudge_y[idx] <- nudges[[cell_type]][2]
+    } else {
+      warning(paste0("'", cell_type, "' not found in label_data[[\"", group_col, "\"]]"))
+    }
+  }
+  
+  return(label_data)
+}
+
+customdimplot <- function(srt = NULL, plot_df = NULL, group.label,
+                          nudges = NULL,
+                          point_args = list(),
+                          label_args = list(),
+                          labs_args = list(),
+                          lims_args = list()) {
+  
+  if (is.null(srt) & is.null(plot_df)) {
+    stop('You need either a seurat object or a dataframe to feed the plot')
+  }
+  
+  if (is.null(plot_df) & !is.null(srt)) {
+    plot_df <- data.frame(
+      srt@reductions$umap@cell.embeddings,
+      group.by = srt@active.ident
+    )
+  }
+  
+  cols <- colnames(plot_df)
+  
+  label_data <- plot_df %>%
+    group_by(.data[[cols[3]]]) %>%
+    summarise(
+      x = median(.data[[cols[1]]]),
+      y = median(.data[[cols[2]]])
+    ) %>%
+    as.data.frame()
+  
+  # Apply nudges
+  if (!is.null(nudges)) {
+    label_data <- apply_nudges(label_data, nudges, group_col = cols[3])
+  } else {
+    label_data$nudge_x <- 0
+    label_data$nudge_y <- 0
+  }
+  
+  point_defaults <- list(shape = 21, stroke = 0.25, size = 2)
+  point_params <- modifyList(point_defaults, point_args)
+  
+  label_defaults <- list()
+  label_params <- modifyList(label_defaults, label_args)
+  
+  lims_defaults <- list()
+  lims_params <- modifyList(lims_defaults, lims_args)
+  
+  labs_defaults <- list(x = "UMAP 1", y = "UMAP 2", fill = group.label)
+  labs_params <- modifyList(labs_defaults, labs_args)
+  
+  ggplot(data = plot_df, aes(x = .data[[cols[1]]], y = .data[[cols[2]]], fill = .data[[cols[3]]])) +
+    do.call(geom_point, point_params) +
+    ggpubr::theme_pubr(legend = "right") +
+    do.call(ggrepel::geom_label_repel, c(
+      list(
+        data = label_data,
+        mapping = aes(x = x, y = y, label = .data[[cols[3]]]),
+        nudge_x = label_data$nudge_x,
+        nudge_y = label_data$nudge_y
+      ),
+      label_params
+    )) +
+    do.call(labs, labs_params) +
+    guides(fill = guide_legend(override.aes = list(label = "  "))) +
+    do.call(lims, lims_params)
+}
