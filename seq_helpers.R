@@ -966,7 +966,8 @@ customdimplot <- function(srt = NULL,
                           point_args = list(),
                           label_args = list(),
                           labs_args = list(),
-                          lims_args = list()) {
+                          lims_args = list(),
+                          shuffle = T) {
   if (is.null(srt) & is.null(plot_df)) {
     stop("You need either a seurat object or a dataframe to feed the plot")
   }
@@ -979,6 +980,10 @@ customdimplot <- function(srt = NULL,
   }
 
   cols <- colnames(plot_df)
+
+  if (shuffle) {
+    plot_df <- plot_df[sample(nrow(plot_df)), ]
+  }
 
   point_defaults <- list(shape = 21, stroke = 0.25, size = 2)
   point_params <- modifyList(point_defaults, point_args)
