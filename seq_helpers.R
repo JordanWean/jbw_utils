@@ -963,6 +963,7 @@ customdimplot <- function(srt = NULL,
                           label = T,
                           group.label = NULL,
                           nudges = NULL,
+                          label_data = NULL,
                           point_args = list(),
                           label_args = list(),
                           labs_args = list(),
@@ -999,13 +1000,15 @@ customdimplot <- function(srt = NULL,
     do.call(labs, labs_params)
 
   if (label) {
-    label_data <- plot_df %>%
-      group_by(.data[[cols[3]]]) %>%
-      summarise(
-        x = median(.data[[cols[1]]]),
-        y = median(.data[[cols[2]]])
-      ) %>%
-      as.data.frame()
+    if (is.null(label_data)) {
+      label_data <- plot_df %>%
+        group_by(.data[[cols[3]]]) %>%
+        summarise(
+          x = median(.data[[cols[1]]]),
+          y = median(.data[[cols[2]]])
+        ) %>%
+        as.data.frame()
+    }
 
     if (!is.null(nudges)) {
       label_data <- apply_nudges(label_data, nudges, group_col = cols[3])
