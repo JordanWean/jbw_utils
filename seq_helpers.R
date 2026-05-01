@@ -963,7 +963,6 @@ customdimplot <- function(srt = NULL,
                           label = T,
                           group.label = NULL,
                           nudges = NULL,
-                          label_data = NULL,
                           point_args = list(),
                           label_args = list(),
                           labs_args = list(),
@@ -980,7 +979,15 @@ customdimplot <- function(srt = NULL,
     )
   }
 
-  cols <- colnames(plot_df)
+  cols <- tolower(colnames(plot_df))
+  colnames(plot_df) <- cols
+  grouping_col <- plot_df %>%
+    select(!where(is.numeric)) %>%
+    colnames()
+
+  if (length(grouping_col) > 1) {
+    stop("Only 1 grouping column please")
+  }
 
   if (shuffle) {
     plot_df <- plot_df[sample(nrow(plot_df)), ]
@@ -989,44 +996,50 @@ customdimplot <- function(srt = NULL,
   point_defaults <- list(shape = 21, stroke = 0.25, size = 2)
   point_params <- modifyList(point_defaults, point_args)
 
-  label_defaults <- list()
-  label_params <- modifyList(label_defaults, label_args)
-
   labs_defaults <- list(x = "UMAP 1", y = "UMAP 2", fill = group.label)
   labs_params <- modifyList(labs_defaults, labs_args)
 
-  x <- ggplot(data = plot_df, aes(x = .data[[cols[1]]], y = .data[[cols[2]]], fill = .data[[cols[3]]])) +
+  x <- ggplot(
+    data = plot_df,
+    aes(
+      x = .data[[cols[1]]], y = .data[[cols[2]]],
+      fill = .data[[grouping_col]]
+    )
+  ) +
     do.call(geom_point, point_params) +
     do.call(labs, labs_params)
 
   if (label) {
-    if (is.null(label_data)) {
+    if (!"data" %in% names(label_args)) {
       label_data <- plot_df %>%
-        group_by(.data[[cols[3]]]) %>%
+        group_by(.data[[grouping_col]]) %>%
         summarise(
           x = median(.data[[cols[1]]]),
           y = median(.data[[cols[2]]])
         ) %>%
         as.data.frame()
+    } else {
+      label_data <- label_args[["data"]]
     }
 
+
     if (!is.null(nudges)) {
-      label_data <- apply_nudges(label_data, nudges, group_col = cols[3])
+      label_data <- apply_nudges(label_data, nudges, group_col = group_col)
     } else {
       label_data$nudge_x <- 0
       label_data$nudge_y <- 0
     }
 
+    label_defaults <- list(
+      data = label_data,
+      mapping = aes(x = x, y = y, label = .data[[grouping_col]]),
+      nudge_x = label_data$nudge_x,
+      nudge_y = label_data$nudge_y
+    )
+    label_params <- modifyList(label_defaults, label_args)
+
     x <- x +
-      do.call(ggrepel::geom_label_repel, c(
-        list(
-          data = label_data,
-          mapping = aes(x = x, y = y, label = .data[[cols[3]]]),
-          nudge_x = label_data$nudge_x,
-          nudge_y = label_data$nudge_y
-        ),
-        label_params
-      )) +
+      do.call(ggrepel::geom_label_repel, label_params) +
       guides(fill = guide_legend(override.aes = list(label = "  ")))
   }
   return(x)
