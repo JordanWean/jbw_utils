@@ -1024,7 +1024,7 @@ customdimplot <- function(srt = NULL,
 
 
     if (!is.null(nudges)) {
-      label_data <- apply_nudges(label_data, nudges, group_col = group_col)
+      label_data <- apply_nudges(label_data, nudges, group_col = grouping_col)
     } else {
       label_data$nudge_x <- 0
       label_data$nudge_y <- 0
